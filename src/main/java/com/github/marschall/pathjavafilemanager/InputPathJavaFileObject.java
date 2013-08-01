@@ -14,9 +14,9 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-class InpuPathJavaFileObject extends PathJavaFileObject {
+class InputPathJavaFileObject extends PathJavaFileObject {
 
-  InpuPathJavaFileObject(Path path, Kind kind, Charset fileEncoding) {
+  InputPathJavaFileObject(Path path, Kind kind, Charset fileEncoding) {
     super(path, kind, fileEncoding);
   }
   

@@ -1,5 +1,7 @@
 package com.github.marschall.pathjavafilemanager;
 
+import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 import static javax.tools.StandardLocation.ANNOTATION_PROCESSOR_PATH;
 import static javax.tools.StandardLocation.CLASS_OUTPUT;
 import static javax.tools.StandardLocation.CLASS_PATH;
@@ -7,13 +9,19 @@ import static javax.tools.StandardLocation.PLATFORM_CLASS_PATH;
 import static javax.tools.StandardLocation.SOURCE_OUTPUT;
 import static javax.tools.StandardLocation.SOURCE_PATH;
 
+import static javax.tools.JavaFileObject.Kind.*;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.tools.FileObject;
@@ -63,10 +71,75 @@ public final class PathJavaFileManager implements JavaFileManager {
   }
 
   @Override
-  public Iterable<JavaFileObject> list(Location location, String packageName, Set<Kind> kinds, boolean recurse) throws IOException {
+  public Iterable<JavaFileObject> list(final Location location, String packageName, final Set<Kind> kinds, final boolean recurse) throws IOException {
     this.checker.check();
-    // TODO Auto-generated method stub
+    final Path path = this.getPath(location);
+    if (path == null) {
+      return Collections.emptyList();
+    }
+    
+    final List<JavaFileObject> files = new ArrayList<>();
+    Files.walkFileTree(resolvePackage(path, packageName), new SimpleFileVisitor<Path>() {
+
+      @Override
+      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        if (Files.isSameFile(path, dir)) {
+          return CONTINUE;
+        }
+        return recurse ? CONTINUE : SKIP_SUBTREE;
+      }
+
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Kind kind = getKind(path);
+        if (kinds.contains(kind)) {
+          JavaFileObject fileObject;
+          if (location.isOutputLocation()) {
+            fileObject = new OutputPathJavaFileObject(file, kind, fileEncoding);
+          } else {
+            fileObject = new InputPathJavaFileObject(file, kind, fileEncoding);
+          }
+          files.add(fileObject);
+        }
+        return CONTINUE;
+      }
+
+    });
+    return files;
+  }
+  
+  private static Kind getKind(Path path) {
+    String fileName = path.getFileName().toString();
+    for (Kind kind : Kind.values()) {
+      String extension = kind.extension;
+      if (!extension.isEmpty() && fileName.endsWith(extension)) {
+        return kind;
+      }
+    }
+    return OTHER;
+  }
+  
+  private Path getPath(Location location) {
+    if (location == CLASS_OUTPUT) {
+      return this.classOutput;
+    } else if (location == SOURCE_OUTPUT) {
+    } else if (location == CLASS_PATH) {
+    } else if (location == SOURCE_PATH) {
+      // can't load classes from source
+      return this.source;
+    } else if (location == PLATFORM_CLASS_PATH) {
+    } else if (location == ANNOTATION_PROCESSOR_PATH) {
+    }
     return null;
+  }
+  
+  private Path resolvePackage(Path base, String packageName) {
+    Path path = base;
+    // TODO optimize
+    for (String element : packageName.split("\\.")) {
+      path = path.resolve(element);
+    }
+    return path;
   }
 
   @Override
@@ -126,10 +199,11 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public boolean hasLocation(Location location) {
     if (location == CLASS_OUTPUT) {
-      
+      return true;
     } else if (location == SOURCE_OUTPUT) {
     } else if (location == CLASS_PATH) {
     } else if (location == SOURCE_PATH) {
+      return true;
     } else if (location == PLATFORM_CLASS_PATH) {
     } else if (location == ANNOTATION_PROCESSOR_PATH) {
     }
