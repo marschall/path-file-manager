@@ -14,4 +14,6 @@ Supported
 Not Supported
 -------------
 * Option emulation
+* reporting encoding errors
+* compiling files larger than 2 GB
 * `javax.tools.JavaFileObject.getNestingKind()`

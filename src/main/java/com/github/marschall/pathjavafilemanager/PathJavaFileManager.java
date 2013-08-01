@@ -1,6 +1,16 @@
 package com.github.marschall.pathjavafilemanager;
 
+import static javax.tools.StandardLocation.ANNOTATION_PROCESSOR_PATH;
+import static javax.tools.StandardLocation.CLASS_OUTPUT;
+import static javax.tools.StandardLocation.CLASS_PATH;
+import static javax.tools.StandardLocation.PLATFORM_CLASS_PATH;
+import static javax.tools.StandardLocation.SOURCE_OUTPUT;
+import static javax.tools.StandardLocation.SOURCE_PATH;
+
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -10,8 +20,6 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
-import javax.tools.StandardLocation;
-import static javax.tools.StandardLocation.*;
 
 /**
  * A JSR-199 JavaFileManager that uses {@link java.nio.Path} instead
@@ -26,10 +34,14 @@ public final class PathJavaFileManager implements JavaFileManager {
 
   private final ClosedCecker checker;
 
+  private volatile Charset fileEncoding;
+
   public PathJavaFileManager(Path source, Path classOutput) {
     this.source = source;
     this.classOutput = classOutput;
     this.checker = new ClosedCecker();
+    // not need to catch exception, system default charset is always supported
+    this.fileEncoding = Charset.forName(System.getProperty(FILE_ENCODING));
   }
 
   @Override
@@ -86,7 +98,11 @@ public final class PathJavaFileManager implements JavaFileManager {
   public boolean handleOption(String current, Iterator<String> remaining) {
     if (current.equals(FILE_ENCODING)) {
       if (remaining.hasNext()) {
-        
+        try {
+          this.fileEncoding = Charset.forName(remaining.next());
+        } catch (IllegalArgumentException e) {
+          throw new IllegalArgumentException("unsuported value for " + FILE_ENCODING + " supported");
+        }
         if (remaining.hasNext()) {
           throw new IllegalArgumentException("only one value for " + FILE_ENCODING + " supported");
         }
