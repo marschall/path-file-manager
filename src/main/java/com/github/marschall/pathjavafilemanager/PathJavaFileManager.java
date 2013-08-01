@@ -147,32 +147,47 @@ public final class PathJavaFileManager implements JavaFileManager {
 
   @Override
   public JavaFileObject getJavaFileForInput(Location location, String className, Kind kind) throws IOException {
+    this.checker.check();
+    if (location.isOutputLocation()) {
+      throw new IllegalArgumentException(location + " is an output location");
+    }
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject sibling) throws IOException {
+    this.checker.check();
+    if (!location.isOutputLocation()) {
+      throw new IllegalArgumentException(location + " is an not output location");
+    }
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public FileObject getFileForInput(Location location, String packageName, String relativeName) throws IOException {
+    this.checker.check();
+    if (location.isOutputLocation()) {
+      throw new IllegalArgumentException(location + " is an output location");
+    }
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling) throws IOException {
+    this.checker.check();
+    if (!location.isOutputLocation()) {
+      throw new IllegalArgumentException(location + " is an not output location");
+    }
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public void flush() throws IOException {
-    // TODO Auto-generated method stub
-
+    // nothing
   }
 
   @Override

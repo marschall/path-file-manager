@@ -20,11 +20,13 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
 
-final class PathJavaFileObject implements JavaFileObject {
+abstract class PathJavaFileObject implements JavaFileObject {
+  // TODO read only
+  // TODO write only
   
   final Path path;
   final Kind kind;
-  private final Charset fileEncoding;
+  final Charset fileEncoding;
   
   PathJavaFileObject(Path path, Kind kind, Charset fileEncoding) {
     this.path = path;
@@ -40,57 +42,6 @@ final class PathJavaFileObject implements JavaFileObject {
   @Override
   public String getName() {
     return this.path.toString();
-  }
-
-  @Override
-  public InputStream openInputStream() throws IOException {
-    return Files.newInputStream(this.path);
-  }
-
-  @Override
-  public OutputStream openOutputStream() throws IOException {
-    return Files.newOutputStream(this.path);
-  }
-
-  @Override
-  public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
-    if (ignoreEncodingErrors) {
-      return new InputStreamReader(this.openInputStream(), this.fileEncoding);
-    } else {
-      CharsetDecoder decoder = this.fileEncoding.newDecoder()
-          .onMalformedInput(REPORT)
-          .onUnmappableCharacter(REPORT);
-      return new InputStreamReader(this.openInputStream(), decoder);
-    }
-  }
-
-  @Override
-  public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-    // REVIEW will fail for files larger than 2GB
-    long size = (int) Files.size(this.path);
-    if (size > Integer.MAX_VALUE) {
-      throw new IllegalStateException("file " + this.getName() + " is larger than: " + Integer.MAX_VALUE);
-    }
-    int fileSize = (int) size;
-    if (fileSize == 0) {
-      // REVIEW can this ever be negative?
-      return "";
-    }
-    
-    try (Reader reader = this.openReader(ignoreEncodingErrors)) {
-      char[] buffer = new char[min(fileSize, 8192)]; // avoid allocating buffer that is larger than the file
-      StringBuilder stringBuilder = new StringBuilder(fileSize);
-      int read;
-      while ((read = reader.read(buffer)) != -1) {
-        stringBuilder.append(buffer, 0, read);
-      }
-      return stringBuilder.toString();
-    }
-  }
-
-  @Override
-  public Writer openWriter() throws IOException {
-    return new OutputStreamWriter(this.openOutputStream(), this.fileEncoding);
   }
 
   @Override
