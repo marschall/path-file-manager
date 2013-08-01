@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,25 +26,25 @@ import org.junit.Test;
 
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+
 public class PathJavaFileManagerTest {
 
   @Test
   public void compileFiles() throws IOException {
     try (FileSystem fileSystem = MemoryFileSystemBuilder.newEmpty().build("pathjavafilemanager")) {
-      Path source = fileSystem.getPath("src");
+      Path src = fileSystem.getPath("src");
       Path target = fileSystem.getPath("target");
       
-      Files.createDirectory(source);
+      Files.createDirectory(src);
       Files.createDirectory(target);
-      
-      // TODO copy files to source
+      copySourceFilesTo(target);
       
       JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-      try (JavaFileManager fileManager = new PathJavaFileManager(source, target)) {
+      try (JavaFileManager fileManager = new PathJavaFileManager(src, target)) {
         
-        FileObject sibling = null;
-        JavaFileObject helloWorldInvoker = fileManager.getJavaFileForOutput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorldInvoker", SOURCE, sibling);
-        JavaFileObject helloWorld = fileManager.getJavaFileForOutput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorld", SOURCE, sibling);
+        JavaFileObject helloWorldInvoker = fileManager.getJavaFileForInput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorldInvoker", SOURCE);
+        JavaFileObject helloWorld = fileManager.getJavaFileForInput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorld", SOURCE);
         
         Writer out = new StringWriter();
         DiagnosticListener<? super JavaFileObject> diagnosticListener = null; // use the compiler's default method for reporting diagnostics
@@ -57,6 +58,18 @@ public class PathJavaFileManagerTest {
         }
       }
     }
+  }
+  
+  private void copySourceFilesTo(Path target) throws IOException {
+    copySourceFileTo(Paths.get("com/github/marschall/pathjavafilemanager/HelloWorld.java"), target);
+    copySourceFileTo(Paths.get("com/github/marschall/pathjavafilemanager/HelloWorldInvoker.java"), target);
+  }
+  
+  private void copySourceFileTo(Path sourceFile, Path target) throws IOException {
+    Path sourceFolder = Paths.get("src/test/java");
+    Path targetFile = target.resolve(sourceFile.toString()); // different provider so we need #toString
+    Files.createDirectories(targetFile.getParent());
+    Files.copy(sourceFolder.resolve(sourceFile), targetFile, COPY_ATTRIBUTES);
   }
 
 }
