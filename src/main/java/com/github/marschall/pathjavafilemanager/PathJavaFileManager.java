@@ -94,6 +94,7 @@ public final class PathJavaFileManager implements JavaFileManager {
         Kind kind = getKind(path);
         if (kinds.contains(kind)) {
           JavaFileObject fileObject;
+          // REVIEW Kind.HTML but JavaFileObject?
           if (location.isOutputLocation()) {
             fileObject = new OutputPathJavaFileObject(file, kind, fileEncoding);
           } else {

@@ -14,8 +14,6 @@ Supported
 
 Not Supported
 -------------
-* read only input files
-* write only output files
 * Option emulation
 * compiling files larger than 2 GB
 * `javax.tools.JavaFileObject.getNestingKind()`

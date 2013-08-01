@@ -1,5 +1,6 @@
 package com.github.marschall.pathjavafilemanager;
 
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static javax.tools.JavaFileObject.Kind.SOURCE;
 import static javax.tools.StandardLocation.SOURCE_PATH;
 import static org.junit.Assert.fail;
@@ -22,11 +23,10 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
-
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 
 public class PathJavaFileManagerTest {
 
@@ -58,6 +58,13 @@ public class PathJavaFileManagerTest {
         }
       }
     }
+  }
+  
+  @Test
+  @Ignore
+  public void getFileForInput() throws IOException {
+    JavaFileManager fileManager = null;
+    FileObject fileForInput = fileManager.getFileForInput(SOURCE_PATH, "com.sun.tools.javac", "resources/compiler.properties");
   }
   
   private void copySourceFilesTo(Path target) throws IOException {

@@ -1,18 +1,8 @@
 package com.github.marschall.pathjavafilemanager;
 
-import static java.lang.Math.min;
-import static java.nio.charset.CodingErrorAction.REPORT;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -21,8 +11,6 @@ import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
 
 abstract class PathJavaFileObject implements JavaFileObject {
-  // TODO read only
-  // TODO write only
   
   final Path path;
   final Kind kind;
