@@ -1,44 +1,39 @@
 package com.github.marschall.pathjavafilemanager;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
-final class OutputPathJavaFileObject extends PathJavaFileObject {
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.NestingKind;
+import javax.tools.JavaFileObject;
 
-  OutputPathJavaFileObject(Path path, Kind kind, Charset fileEncoding) {
-    super(path, kind, fileEncoding);
-  }
-  
-  @Override
-  public OutputStream openOutputStream() throws IOException {
-    return Files.newOutputStream(this.path);
-  }
+final class OutputPathJavaFileObject extends OutputPathFileObject implements JavaFileObject {
 
-  @Override
-  public Writer openWriter() throws IOException {
-    return new OutputStreamWriter(this.openOutputStream(), this.fileEncoding);
+  private final Kind kind;
+
+  OutputPathJavaFileObject(Path path, Charset fileEncoding, Kind kind) {
+    super(path, fileEncoding);
+    this.kind = kind;
   }
 
   @Override
-  public InputStream openInputStream() {
-    throw new IllegalStateException("reading not supported");
+  public Kind getKind() {
+    return this.kind;
   }
 
   @Override
-  public Reader openReader(boolean ignoreEncodingErrors) {
-    throw new IllegalStateException("reading not supported");
+  public boolean isNameCompatible(String simpleName, Kind kind) {
+    return JavaFileObjects.isNameCompatible(this.path, simpleName, kind);
   }
 
   @Override
-  public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-    throw new IllegalStateException("reading not supported");
+  public NestingKind getNestingKind() {
+    return JavaFileObjects.getNestingKind(this.path, this.kind);
+  }
+
+  @Override
+  public Modifier getAccessLevel() {
+    return JavaFileObjects.getAccessLevel(this.path);
   }
 
 }

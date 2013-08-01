@@ -2,14 +2,13 @@ package com.github.marschall.pathjavafilemanager;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
+import static javax.tools.JavaFileObject.Kind.OTHER;
 import static javax.tools.StandardLocation.ANNOTATION_PROCESSOR_PATH;
 import static javax.tools.StandardLocation.CLASS_OUTPUT;
 import static javax.tools.StandardLocation.CLASS_PATH;
 import static javax.tools.StandardLocation.PLATFORM_CLASS_PATH;
 import static javax.tools.StandardLocation.SOURCE_OUTPUT;
 import static javax.tools.StandardLocation.SOURCE_PATH;
-
-import static javax.tools.JavaFileObject.Kind.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -96,9 +95,9 @@ public final class PathJavaFileManager implements JavaFileManager {
           JavaFileObject fileObject;
           // REVIEW Kind.HTML but JavaFileObject?
           if (location.isOutputLocation()) {
-            fileObject = new OutputPathJavaFileObject(file, kind, fileEncoding);
+            fileObject = new OutputPathJavaFileObject(file, fileEncoding, kind);
           } else {
-            fileObject = new InputPathJavaFileObject(file, kind, fileEncoding);
+            fileObject = new InputPathJavaFileObject(file, fileEncoding, kind);
           }
           files.add(fileObject);
         }
@@ -152,14 +151,14 @@ public final class PathJavaFileManager implements JavaFileManager {
 
   @Override
   public boolean isSameFile(FileObject a, FileObject b) {
-    if (!(a instanceof PathJavaFileObject)) {
+    if (!(a instanceof PathFileObject)) {
       throw new IllegalArgumentException("unsupported file object: " + a + " must have been created with this file manager");
     }
-    if (!(b instanceof PathJavaFileObject)) {
+    if (!(b instanceof PathFileObject)) {
       throw new IllegalArgumentException("unsupported file object: " + a + " must have been created with this file manager");
     }
-    PathJavaFileObject first = (PathJavaFileObject) a;
-    PathJavaFileObject second = (PathJavaFileObject) b;
+    PathFileObject first = (PathFileObject) a;
+    PathFileObject second = (PathFileObject) b;
     try {
       return Files.isSameFile(first.path, second.path);
     } catch (IOException e) {

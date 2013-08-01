@@ -8,17 +8,15 @@ import java.nio.file.Path;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
-import javax.tools.JavaFileObject;
+import javax.tools.FileObject;
 
-abstract class PathJavaFileObject implements JavaFileObject {
+abstract class PathFileObject implements FileObject {
   
   final Path path;
-  final Kind kind;
   final Charset fileEncoding;
   
-  PathJavaFileObject(Path path, Kind kind, Charset fileEncoding) {
+  PathFileObject(Path path, Charset fileEncoding) {
     this.path = path;
-    this.kind = kind;
     this.fileEncoding = fileEncoding;
   }
 
@@ -50,28 +48,6 @@ abstract class PathJavaFileObject implements JavaFileObject {
     } catch (IOException e) {
       return false;
     }
-  }
-
-  @Override
-  public Kind getKind() {
-    return this.kind;
-  }
-
-  @Override
-  public boolean isNameCompatible(String simpleName, Kind kind) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public NestingKind getNestingKind() {
-    // TODO check for $ in name and $123
-    return null;
-  }
-
-  @Override
-  public Modifier getAccessLevel() {
-    return null;
   }
 
 }

@@ -2,7 +2,14 @@ package com.github.marschall.pathjavafilemanager;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static javax.tools.JavaFileObject.Kind.SOURCE;
+import static javax.tools.JavaFileObject.Kind.CLASS;
 import static javax.tools.StandardLocation.SOURCE_PATH;
+import static javax.tools.StandardLocation.CLASS_OUTPUT;
+import static javax.lang.model.element.NestingKind.LOCAL;
+import static javax.lang.model.element.NestingKind.MEMBER;
+import static javax.lang.model.element.NestingKind.TOP_LEVEL;
+import static javax.lang.model.element.NestingKind.ANONYMOUS;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -56,6 +63,28 @@ public class PathJavaFileManagerTest {
         if (!task.call()) {
           fail(out.toString());
         }
+      }
+    }
+  }
+  
+  @Test
+  public void getNestingKind() throws IOException {
+    try (FileSystem fileSystem = MemoryFileSystemBuilder.newEmpty().build("pathjavafilemanager")) {
+      Path src = fileSystem.getPath("src");
+      Path target = fileSystem.getPath("target");
+      
+      try (JavaFileManager fileManager = new PathJavaFileManager(src, target)) {
+        JavaFileObject javaFileObject = fileManager.getJavaFileForOutput(CLASS_OUTPUT, "com.github.marschall.pathjavafilemanager.NestingExamples", CLASS, null);
+        assertEquals(TOP_LEVEL, javaFileObject.getNestingKind());
+        
+        javaFileObject = fileManager.getJavaFileForOutput(CLASS_OUTPUT, "com.github.marschall.pathjavafilemanager.NestingExamples$MemberClass1", CLASS, null);
+        assertEquals(MEMBER, javaFileObject.getNestingKind());
+        
+        javaFileObject = fileManager.getJavaFileForOutput(CLASS_OUTPUT, "com.github.marschall.pathjavafilemanager.NestingExamples$1LocalClass", CLASS, null);
+        assertEquals(LOCAL, javaFileObject.getNestingKind());
+        
+        javaFileObject = fileManager.getJavaFileForOutput(CLASS_OUTPUT, "com.github.marschall.pathjavafilemanager.NestingExamples$1", CLASS, null);
+        assertEquals(ANONYMOUS, javaFileObject.getNestingKind());
       }
     }
   }
