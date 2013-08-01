@@ -1,5 +1,8 @@
 package com.github.marschall.pathjavafilemanager;
 
+import static java.lang.Math.min;
+import static java.nio.charset.CodingErrorAction.REPORT;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,14 +12,13 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
-
-import static java.lang.Math.min;
 
 final class PathJavaFileObject implements JavaFileObject {
   
@@ -52,8 +54,14 @@ final class PathJavaFileObject implements JavaFileObject {
 
   @Override
   public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
-    // TODO report errors
-    return new InputStreamReader(this.openInputStream(), this.fileEncoding);
+    if (ignoreEncodingErrors) {
+      return new InputStreamReader(this.openInputStream(), this.fileEncoding);
+    } else {
+      CharsetDecoder decoder = this.fileEncoding.newDecoder()
+          .onMalformedInput(REPORT)
+          .onUnmappableCharacter(REPORT);
+      return new InputStreamReader(this.openInputStream(), decoder);
+    }
   }
 
   @Override
@@ -82,7 +90,7 @@ final class PathJavaFileObject implements JavaFileObject {
 
   @Override
   public Writer openWriter() throws IOException {
-    return new OutputStreamWriter(this.openOutputStream());
+    return new OutputStreamWriter(this.openOutputStream(), this.fileEncoding);
   }
 
   @Override

@@ -10,10 +10,12 @@ https://bugs.eclipse.org/bugs/show_bug.cgi?id=154111
 
 Supported
 ---------
+* reporting encoding errors
 
 Not Supported
 -------------
+* read only input files
+* write only output files
 * Option emulation
-* reporting encoding errors
 * compiling files larger than 2 GB
 * `javax.tools.JavaFileObject.getNestingKind()`
