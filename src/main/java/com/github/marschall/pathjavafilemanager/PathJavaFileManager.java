@@ -133,13 +133,27 @@ public final class PathJavaFileManager implements JavaFileManager {
     return null;
   }
   
-  private Path resolvePackage(Path base, String packageName) {
+  private Path getPathChecked(Location location) {
+    Path path = this.getPath(location);
+    if (path == null) {
+      throw new IllegalArgumentException("unknown location: " + location);
+    }
+    return path;
+  }
+  
+  private static Path resolvePackage(Path base, String packageName) {
     Path path = base;
     // TODO optimize
     for (String element : packageName.split("\\.")) {
       path = path.resolve(element);
     }
     return path;
+  }
+  
+  private static Path resolveClass(Path base, String className, String extension) {
+    int dotIndex = className.lastIndexOf('.');
+    Path resolvedPackage = resolvePackage(base, className.substring(0, dotIndex));
+    return resolvedPackage.resolve(className.substring(dotIndex + 1) + '.' + extension);
   }
 
   @Override
@@ -225,8 +239,9 @@ public final class PathJavaFileManager implements JavaFileManager {
     if (location.isOutputLocation()) {
       throw new IllegalArgumentException(location + " is an output location");
     }
-    // TODO Auto-generated method stub
-    return null;
+    Path basePath = this.getPathChecked(location);
+    Path path = resolveClass(basePath, className, "java");
+    return new InputPathJavaFileObject(path, this.fileEncoding, kind);
   }
 
   @Override
@@ -235,8 +250,9 @@ public final class PathJavaFileManager implements JavaFileManager {
     if (!location.isOutputLocation()) {
       throw new IllegalArgumentException(location + " is an not output location");
     }
-    // TODO Auto-generated method stub
-    return null;
+    Path basePath = this.getPathChecked(location);
+    Path path = resolveClass(basePath, className, "class");
+    return new OutputPathJavaFileObject(path, this.fileEncoding, kind);
   }
 
   @Override
