@@ -13,12 +13,12 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
 
-final class PathavaFileObject implements JavaFileObject {
+final class PathJavaFileObject implements JavaFileObject {
   
-  private final Path path;
-  private final Kind kind;
+  final Path path;
+  final Kind kind;
   
-  PathavaFileObject(Path path, Kind kind) {
+  PathJavaFileObject(Path path, Kind kind) {
     this.path = path;
     this.kind = kind;
   }

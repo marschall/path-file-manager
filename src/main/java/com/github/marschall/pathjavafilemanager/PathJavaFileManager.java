@@ -1,6 +1,7 @@
 package com.github.marschall.pathjavafilemanager;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
@@ -17,49 +18,92 @@ import static javax.tools.StandardLocation.*;
  * of {@link java.io.File}
  */
 public final class PathJavaFileManager implements JavaFileManager {
+  
+  private static final String FILE_ENCODING = "file.encoding";
 
   private final Path source;
   private final Path classOutput;
 
+  private final ClosedCecker checker;
+
   public PathJavaFileManager(Path source, Path classOutput) {
     this.source = source;
     this.classOutput = classOutput;
+    this.checker = new ClosedCecker();
   }
 
   @Override
   public ClassLoader getClassLoader(Location location) {
-    // TODO Auto-generated method stub
+    this.checker.check();
+    if (location == CLASS_OUTPUT) {
+      
+    } else if (location == SOURCE_OUTPUT) {
+    } else if (location == CLASS_PATH) {
+    } else if (location == SOURCE_PATH) {
+      // can't load classes from source
+      return null;
+    } else if (location == PLATFORM_CLASS_PATH) {
+      return ClassLoader.getSystemClassLoader();
+    } else if (location == ANNOTATION_PROCESSOR_PATH) {
+    }
+    // unknown location
     return null;
   }
 
   @Override
-  public Iterable<JavaFileObject> list(Location location, String packageName,
-      Set<Kind> kinds, boolean recurse) throws IOException {
+  public Iterable<JavaFileObject> list(Location location, String packageName, Set<Kind> kinds, boolean recurse) throws IOException {
+    this.checker.check();
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public String inferBinaryName(Location location, JavaFileObject file) {
+    this.checker.check();
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public boolean isSameFile(FileObject a, FileObject b) {
-    // TODO Auto-generated method stub
-    return false;
+    if (!(a instanceof PathJavaFileObject)) {
+      throw new IllegalArgumentException("unsupported file object: " + a + " must have been created with this file manager");
+    }
+    if (!(b instanceof PathJavaFileObject)) {
+      throw new IllegalArgumentException("unsupported file object: " + a + " must have been created with this file manager");
+    }
+    PathJavaFileObject first = (PathJavaFileObject) a;
+    PathJavaFileObject second = (PathJavaFileObject) b;
+    try {
+      return Files.isSameFile(first.path, second.path);
+    } catch (IOException e) {
+      // REVIEW unsure
+      throw new RuntimeException("could not compare " + a + " with " + b, e);
+    }
   }
 
   @Override
   public boolean handleOption(String current, Iterator<String> remaining) {
-    // REVIEW missing option support
-    return false;
+    if (current.equals(FILE_ENCODING)) {
+      if (remaining.hasNext()) {
+        
+        if (remaining.hasNext()) {
+          throw new IllegalArgumentException("only one value for " + FILE_ENCODING + " supported");
+        }
+      } else {
+        throw new IllegalArgumentException("option value for " + FILE_ENCODING + " missing");
+      }
+      return false;
+    } else {
+      return false;
+    }
   }
   
   @Override
   public int isSupportedOption(String option) {
-    // REVIEW missing option support
+    if (option.equals(FILE_ENCODING)) {
+      return 1;
+    }
     return -1;
   }
 
@@ -117,7 +161,7 @@ public final class PathJavaFileManager implements JavaFileManager {
 
   @Override
   public void close() throws IOException {
-    // TODO Auto-generated method stub
+    this.checker.close();
   }
 
 }
