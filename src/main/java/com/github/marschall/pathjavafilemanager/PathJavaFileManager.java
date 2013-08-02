@@ -116,8 +116,7 @@ public final class PathJavaFileManager implements JavaFileManager {
     return files;
   }
   
-  private static Kind getKind(Path path) {
-    String fileName = path.getFileName().toString();
+  private static Kind getKind(String fileName) {
     for (Kind kind : Kind.values()) {
       String extension = kind.extension;
       if (!extension.isEmpty() && fileName.endsWith(extension)) {
@@ -125,6 +124,11 @@ public final class PathJavaFileManager implements JavaFileManager {
       }
     }
     return OTHER;
+  }
+  
+  private static Kind getKind(Path path) {
+    String fileName = path.getFileName().toString();
+    return getKind(fileName);
   }
   
   private Path getPath(Location location) {
@@ -274,8 +278,9 @@ public final class PathJavaFileManager implements JavaFileManager {
     if (location.isOutputLocation()) {
       throw new IllegalArgumentException(location + " is an output location");
     }
-    // TODO Auto-generated method stub
-    return null;
+    Path basePath = this.getPathChecked(location);
+    Path path = resolvePackage(basePath, packageName).resolve(relativeName);
+    return new InputPathJavaFileObject(path, this.fileEncoding, getKind(relativeName));
   }
 
   @Override
@@ -284,8 +289,9 @@ public final class PathJavaFileManager implements JavaFileManager {
     if (!location.isOutputLocation()) {
       throw new IllegalArgumentException(location + " is an not output location");
     }
-    // TODO Auto-generated method stub
-    return null;
+    Path basePath = this.getPathChecked(location);
+    Path path = resolvePackage(basePath, packageName).resolve(relativeName);
+    return new OutputPathJavaFileObject(path, this.fileEncoding, getKind(relativeName));
   }
 
   @Override
