@@ -39,8 +39,7 @@ class InputPathFileObject extends PathFileObject {
 
   @Override
   public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-    // REVIEW will fail for files larger than 2GB
-    long size = (int) Files.size(this.path);
+    long size = Files.size(this.path);
     if (size > Integer.MAX_VALUE) {
       throw new IllegalStateException("file " + this.getName() + " is larger than: " + Integer.MAX_VALUE);
     }

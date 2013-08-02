@@ -45,10 +45,10 @@ public class PathJavaFileManagerTest {
       
       Files.createDirectory(src);
       Files.createDirectory(target);
-      copySourceFilesTo(target);
+      copySourceFilesTo(src);
       
       JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-      try (JavaFileManager fileManager = new PathJavaFileManager(src, target)) {
+      try (JavaFileManager fileManager = PathJavaFileManagerBuilder.onPaths(src, target).build()) {
         
         JavaFileObject helloWorldInvoker = fileManager.getJavaFileForInput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorldInvoker", SOURCE);
         JavaFileObject helloWorld = fileManager.getJavaFileForInput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorld", SOURCE);
@@ -73,7 +73,7 @@ public class PathJavaFileManagerTest {
       Path src = fileSystem.getPath("src");
       Path target = fileSystem.getPath("target");
       
-      try (JavaFileManager fileManager = new PathJavaFileManager(src, target)) {
+      try (JavaFileManager fileManager = PathJavaFileManagerBuilder.onPaths(src, target).build()) {
         JavaFileObject javaFileObject = fileManager.getJavaFileForOutput(CLASS_OUTPUT, "com.github.marschall.pathjavafilemanager.NestingExamples", CLASS, null);
         assertEquals(TOP_LEVEL, javaFileObject.getNestingKind());
         

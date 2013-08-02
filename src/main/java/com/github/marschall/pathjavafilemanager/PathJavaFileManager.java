@@ -38,14 +38,19 @@ public final class PathJavaFileManager implements JavaFileManager {
 
   private final Path source;
   private final Path classOutput;
+  private final Path sourceOutput;
+  private final ClassLoader classPath;
+  private final ClassLoader annotationProcessorPath;
 
   private final ClosedCecker checker;
-
   private volatile Charset fileEncoding;
 
-  public PathJavaFileManager(Path source, Path classOutput) {
+  public PathJavaFileManager(Path source, Path classOutput, Path sourceOutput, ClassLoader classPath, ClassLoader annotationProcessorPath) {
     this.source = source;
     this.classOutput = classOutput;
+    this.sourceOutput = sourceOutput;
+    this.classPath = classPath;
+    this.annotationProcessorPath = annotationProcessorPath;
     this.checker = new ClosedCecker();
     // not need to catch exception, system default charset is always supported
     this.fileEncoding = Charset.forName(System.getProperty(FILE_ENCODING));
@@ -58,12 +63,14 @@ public final class PathJavaFileManager implements JavaFileManager {
       
     } else if (location == SOURCE_OUTPUT) {
     } else if (location == CLASS_PATH) {
+      return this.classPath;
     } else if (location == SOURCE_PATH) {
       // can't load classes from source
       return null;
     } else if (location == PLATFORM_CLASS_PATH) {
       return ClassLoader.getSystemClassLoader();
     } else if (location == ANNOTATION_PROCESSOR_PATH) {
+      return this.annotationProcessorPath;
     }
     // unknown location
     return null;
@@ -72,13 +79,14 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public Iterable<JavaFileObject> list(final Location location, String packageName, final Set<Kind> kinds, final boolean recurse) throws IOException {
     this.checker.check();
-    final Path path = this.getPath(location);
-    if (path == null) {
+    Path basePath = this.getPath(location);
+    if (basePath == null) {
       return Collections.emptyList();
     }
     
     final List<JavaFileObject> files = new ArrayList<>();
-    Files.walkFileTree(resolvePackage(path, packageName), new SimpleFileVisitor<Path>() {
+    final Path path = resolvePackage(basePath, packageName);
+    Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
       @Override
       public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -90,7 +98,7 @@ public final class PathJavaFileManager implements JavaFileManager {
 
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        Kind kind = getKind(path);
+        Kind kind = getKind(file);
         if (kinds.contains(kind)) {
           JavaFileObject fileObject;
           // REVIEW Kind.HTML but JavaFileObject?
@@ -123,6 +131,7 @@ public final class PathJavaFileManager implements JavaFileManager {
     if (location == CLASS_OUTPUT) {
       return this.classOutput;
     } else if (location == SOURCE_OUTPUT) {
+      return this.sourceOutput;
     } else if (location == CLASS_PATH) {
     } else if (location == SOURCE_PATH) {
       // can't load classes from source
@@ -215,11 +224,15 @@ public final class PathJavaFileManager implements JavaFileManager {
     if (location == CLASS_OUTPUT) {
       return true;
     } else if (location == SOURCE_OUTPUT) {
+      return true;
     } else if (location == CLASS_PATH) {
+      return true;
     } else if (location == SOURCE_PATH) {
       return true;
     } else if (location == PLATFORM_CLASS_PATH) {
+      return false;
     } else if (location == ANNOTATION_PROCESSOR_PATH) {
+      return true;
     }
       
       // TODO java 8
