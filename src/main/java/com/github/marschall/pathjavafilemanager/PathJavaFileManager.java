@@ -172,8 +172,28 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public String inferBinaryName(Location location, JavaFileObject file) {
     this.checker.check();
-    // TODO Auto-generated method stub
-    return null;
+    if (!(file instanceof PathFileObject)) {
+      throw new IllegalArgumentException("file: " + file + " of woring file manager");
+    }
+    Path basePath = this.getPathChecked(location);
+    PathFileObject pathFile = (PathFileObject) file;
+    Path path = basePath.toAbsolutePath().relativize(pathFile.path);
+    StringBuilder binaryName = new StringBuilder();
+    int nameCount = path.getNameCount();
+    for (int i = 0; i < nameCount; ++i) {
+      if (i != 0) {
+        binaryName.append('.');
+      }
+      Path element = path.getName(i);
+      String fileName = element.toString();
+      if (i < nameCount - 1) {
+        binaryName.append(fileName);
+      } else {
+        binaryName.append(fileName, 0, fileName.length() - file.getKind().extension.length());
+      }
+      
+    }
+    return binaryName.toString();
   }
 
   @Override
