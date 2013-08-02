@@ -23,7 +23,7 @@ final class OutputPathJavaFileObject extends OutputPathFileObject implements Jav
 
   @Override
   public boolean isNameCompatible(String simpleName, Kind kind) {
-    return JavaFileObjects.isNameCompatible(this.path, simpleName, kind);
+    return JavaFileObjects.isNameCompatible(this.path, this.kind, simpleName, kind);
   }
 
   @Override

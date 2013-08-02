@@ -17,9 +17,12 @@ final class JavaFileObjects {
     throw new AssertionError("not instantiable");
   }
   
-  static boolean isNameCompatible(Path path, String simpleName, Kind kind) {
-    // TODO Auto-generated method stub
-    return false;
+  static boolean isNameCompatible(Path path, Kind fileKind, String simpleName, Kind kind) {
+    if (fileKind != kind) {
+      return false;
+    }
+    String fileName = path.getFileName().toString();
+    return fileName.equals(simpleName + kind.extension);
   }
 
   static NestingKind getNestingKind(Path path, Kind kind) {
