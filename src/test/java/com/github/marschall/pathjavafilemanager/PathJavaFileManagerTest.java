@@ -1,14 +1,14 @@
 package com.github.marschall.pathjavafilemanager;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static javax.tools.JavaFileObject.Kind.SOURCE;
-import static javax.tools.JavaFileObject.Kind.CLASS;
-import static javax.tools.StandardLocation.SOURCE_PATH;
-import static javax.tools.StandardLocation.CLASS_OUTPUT;
+import static javax.lang.model.element.NestingKind.ANONYMOUS;
 import static javax.lang.model.element.NestingKind.LOCAL;
 import static javax.lang.model.element.NestingKind.MEMBER;
 import static javax.lang.model.element.NestingKind.TOP_LEVEL;
-import static javax.lang.model.element.NestingKind.ANONYMOUS;
+import static javax.tools.JavaFileObject.Kind.CLASS;
+import static javax.tools.JavaFileObject.Kind.SOURCE;
+import static javax.tools.StandardLocation.CLASS_OUTPUT;
+import static javax.tools.StandardLocation.SOURCE_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -19,9 +19,12 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import javax.tools.Diagnostic.Kind;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
+import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.FileObject;
 import javax.tools.JavaCompiler;
@@ -48,16 +51,18 @@ public class PathJavaFileManagerTest {
       copySourceFilesTo(src);
       
       JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-      try (JavaFileManager fileManager = PathJavaFileManagerBuilder.onPaths(src, target).build()) {
+      try (JavaFileManager fileManager = PathJavaFileManagerBuilder.onPaths(src, target, compiler).build()) {
         
         JavaFileObject helloWorldInvoker = fileManager.getJavaFileForInput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorldInvoker", SOURCE);
         JavaFileObject helloWorld = fileManager.getJavaFileForInput(SOURCE_PATH, "com.github.marschall.pathjavafilemanager.HelloWorld", SOURCE);
         
         Writer out = new StringWriter();
-        DiagnosticListener<? super JavaFileObject> diagnosticListener = null; // use the compiler's default method for reporting diagnostics
+//        DiagnosticListener<? super JavaFileObject> diagnosticListener = null; // use the compiler's default method for reporting diagnostics
+        DiagnosticListener<? super JavaFileObject> diagnosticListener = new SimpleDiagnosticListener();
         Iterable<String> options = null; // no options
         Iterable<String> classes = null; // means no class names
-        List<JavaFileObject> compilationUnits = Arrays.asList(helloWorldInvoker, helloWorld);
+//        List<JavaFileObject> compilationUnits = Arrays.asList(helloWorldInvoker, helloWorld);
+        List<JavaFileObject> compilationUnits = Collections.singletonList(helloWorld);
         
         CompilationTask task = compiler.getTask(out, fileManager, diagnosticListener, options, classes, compilationUnits);
         if (!task.call()) {
@@ -67,13 +72,25 @@ public class PathJavaFileManagerTest {
     }
   }
   
+  static final class SimpleDiagnosticListener implements DiagnosticListener<JavaFileObject> {
+
+    @Override
+    public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+      if (diagnostic.getKind() == Kind.ERROR) {
+        fail(diagnostic.getMessage(Locale.getDefault()));
+      }
+    }
+    
+  }
+  
   @Test
   public void getNestingKind() throws IOException {
     try (FileSystem fileSystem = MemoryFileSystemBuilder.newEmpty().build("pathjavafilemanager")) {
       Path src = fileSystem.getPath("src");
       Path target = fileSystem.getPath("target");
       
-      try (JavaFileManager fileManager = PathJavaFileManagerBuilder.onPaths(src, target).build()) {
+      JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+      try (JavaFileManager fileManager = PathJavaFileManagerBuilder.onPaths(src, target, compiler).build()) {
         JavaFileObject javaFileObject = fileManager.getJavaFileForOutput(CLASS_OUTPUT, "com.github.marschall.pathjavafilemanager.NestingExamples", CLASS, null);
         assertEquals(TOP_LEVEL, javaFileObject.getNestingKind());
         

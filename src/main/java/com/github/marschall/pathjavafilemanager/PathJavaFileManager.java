@@ -27,6 +27,7 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
+import javax.tools.StandardJavaFileManager;
 
 /**
  * A JSR-199 JavaFileManager that uses {@link java.nio.Path} instead
@@ -45,12 +46,15 @@ public final class PathJavaFileManager implements JavaFileManager {
   private final ClosedCecker checker;
   private volatile Charset fileEncoding;
 
-  public PathJavaFileManager(Path source, Path classOutput, Path sourceOutput, ClassLoader classPath, ClassLoader annotationProcessorPath) {
+  private final StandardJavaFileManager delegate;
+
+  public PathJavaFileManager(Path source, Path classOutput, Path sourceOutput, ClassLoader classPath, ClassLoader annotationProcessorPath, StandardJavaFileManager delegate) {
     this.source = source;
     this.classOutput = classOutput;
     this.sourceOutput = sourceOutput;
     this.classPath = classPath;
     this.annotationProcessorPath = annotationProcessorPath;
+    this.delegate = delegate;
     this.checker = new ClosedCecker();
     // not need to catch exception, system default charset is always supported
     this.fileEncoding = Charset.forName(System.getProperty(FILE_ENCODING));
@@ -64,11 +68,13 @@ public final class PathJavaFileManager implements JavaFileManager {
     } else if (location == SOURCE_OUTPUT) {
     } else if (location == CLASS_PATH) {
       return this.classPath;
+//      return this.delegate.getClassLoader(location);
     } else if (location == SOURCE_PATH) {
       // can't load classes from source
       return null;
     } else if (location == PLATFORM_CLASS_PATH) {
-      return ClassLoader.getSystemClassLoader();
+//      return ClassLoader.getSystemClassLoader();
+      return this.delegate.getClassLoader(location);
     } else if (location == ANNOTATION_PROCESSOR_PATH) {
       return this.annotationProcessorPath;
     }
@@ -79,6 +85,11 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public Iterable<JavaFileObject> list(final Location location, String packageName, final Set<Kind> kinds, final boolean recurse) throws IOException {
     this.checker.check();
+    if (location == PLATFORM_CLASS_PATH) {
+      Iterable<JavaFileObject> list = this.delegate.list(location, packageName, kinds, recurse);
+      return list;
+    }
+    
     Path basePath = this.getPath(location);
     if (basePath == null) {
       return Collections.emptyList();
@@ -172,8 +183,12 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public String inferBinaryName(Location location, JavaFileObject file) {
     this.checker.check();
+    if (location == PLATFORM_CLASS_PATH) {
+      return this.delegate.inferBinaryName(location, file);
+    }
+    
     if (!(file instanceof PathFileObject)) {
-      throw new IllegalArgumentException("file: " + file + " of woring file manager");
+      throw new IllegalArgumentException("file: " + file + " of wrong file manager");
     }
     Path basePath = this.getPathChecked(location);
     PathFileObject pathFile = (PathFileObject) file;
@@ -254,7 +269,7 @@ public final class PathJavaFileManager implements JavaFileManager {
     } else if (location == SOURCE_PATH) {
       return true;
     } else if (location == PLATFORM_CLASS_PATH) {
-      return false;
+      return true;
     } else if (location == ANNOTATION_PROCESSOR_PATH) {
       return true;
     }
@@ -273,6 +288,10 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public JavaFileObject getJavaFileForInput(Location location, String className, Kind kind) throws IOException {
     this.checker.check();
+    if (location == PLATFORM_CLASS_PATH) {
+      return this.delegate.getJavaFileForInput(location, className, kind);
+    }
+    
     if (location.isOutputLocation()) {
       throw new IllegalArgumentException(location + " is an output location");
     }
@@ -295,6 +314,10 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public FileObject getFileForInput(Location location, String packageName, String relativeName) throws IOException {
     this.checker.check();
+    if (location == PLATFORM_CLASS_PATH) {
+      return this.delegate.getFileForInput(location, packageName, relativeName);
+    }
+    
     if (location.isOutputLocation()) {
       throw new IllegalArgumentException(location + " is an output location");
     }
