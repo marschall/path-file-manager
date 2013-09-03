@@ -16,4 +16,3 @@ Not Supported
 -------------
 * Option emulation
 * compiling files larger than 2 GB
-* `javax.tools.JavaFileObject.getNestingKind()`
