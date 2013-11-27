@@ -19,12 +19,12 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.tools.Diagnostic.Kind;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import javax.tools.Diagnostic;
+import javax.tools.Diagnostic.Kind;
 import javax.tools.DiagnosticListener;
 import javax.tools.FileObject;
 import javax.tools.JavaCompiler;
@@ -61,13 +61,14 @@ public class PathJavaFileManagerTest {
         DiagnosticListener<? super JavaFileObject> diagnosticListener = new SimpleDiagnosticListener();
         Iterable<String> options = null; // no options
         Iterable<String> classes = null; // means no class names
-//        List<JavaFileObject> compilationUnits = Arrays.asList(helloWorldInvoker, helloWorld);
-        List<JavaFileObject> compilationUnits = Collections.singletonList(helloWorld);
+        List<JavaFileObject> compilationUnits = Arrays.asList(helloWorldInvoker, helloWorld);
         
         CompilationTask task = compiler.getTask(out, fileManager, diagnosticListener, options, classes, compilationUnits);
         if (!task.call()) {
           fail(out.toString());
         }
+        
+        
       }
     }
   }

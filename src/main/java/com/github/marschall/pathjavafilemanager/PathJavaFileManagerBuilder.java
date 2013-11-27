@@ -7,7 +7,7 @@ import javax.tools.JavaFileManager;
 import javax.tools.StandardJavaFileManager;
 
 /**
- * Builds a JSR-199 JavaFileManager that uses {@link java.nio.Path} instead
+ * Builds a JSR-199 JavaFileManager that uses {@link Path} instead
  * of {@link java.io.File}
  */
 public final class PathJavaFileManagerBuilder {

@@ -30,7 +30,7 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.StandardJavaFileManager;
 
 /**
- * A JSR-199 JavaFileManager that uses {@link java.nio.Path} instead
+ * A JSR-199 JavaFileManager that uses {@link Path} instead
  * of {@link java.io.File}
  */
 public final class PathJavaFileManager implements JavaFileManager {
