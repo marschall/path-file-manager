@@ -15,6 +15,9 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,11 +40,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
+import com.github.marschall.pathclassloader.PathClassLoader;
 
 public class PathJavaFileManagerTest {
 
   @Test
-  public void compileFiles() throws IOException {
+  public void compileFiles() throws Throwable {
     try (FileSystem fileSystem = MemoryFileSystemBuilder.newEmpty().build("pathjavafilemanager")) {
       Path src = fileSystem.getPath("src");
       Path target = fileSystem.getPath("target");
@@ -68,7 +72,11 @@ public class PathJavaFileManagerTest {
           fail(out.toString());
         }
         
-        
+        PathClassLoader classLoader = new PathClassLoader(target);
+        Class<?> invokerClass = Class.forName("com.github.marschall.pathjavafilemanager.HelloWorldInvoker", true, classLoader);
+        MethodType methodType = MethodType.methodType(Void.TYPE, String[].class);
+        MethodHandle methodHandle = MethodHandles.publicLookup().findStatic(invokerClass, "main", methodType);
+        methodHandle.invokeExact(new String[0]);
       }
     }
   }
