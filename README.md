@@ -1,8 +1,20 @@
-PathJavaFileManager
+PathJavaFileManager [![Build Status](https://travis-ci.org/marschall/path-file-manager.png?branch=master)](https://travis-ci.org/marschall/path-file-manager)
 ===================
 A JSR-199 JavaFileManager that uses `java.nio.Path` instead of `java.io.File`.
 
 The encoding used will be the value of the "file.encoding" option.
+
+
+Maven
+-----
+
+```xml
+<dependency>
+  <groupId>com.github.marschall</groupId>
+  <artifactId>path-file-manager</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
 
 JSR-199
 -------
