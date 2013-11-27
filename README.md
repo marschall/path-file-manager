@@ -2,6 +2,8 @@ PathJavaFileManager
 ===================
 A JSR-199 JavaFileManager that uses `java.nio.Path` instead of `java.io.File`.
 
+The encoding used will be the value of the "file.encoding" option.
+
 JSR-199
 -------
 Requires a JDK or JDT

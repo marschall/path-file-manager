@@ -1,8 +1,6 @@
 package com.github.marschall.pathjavafilemanager;
 
 import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Locale.Category;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;

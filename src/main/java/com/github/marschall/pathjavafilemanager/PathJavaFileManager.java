@@ -85,9 +85,9 @@ public final class PathJavaFileManager implements JavaFileManager {
   @Override
   public Iterable<JavaFileObject> list(final Location location, String packageName, final Set<Kind> kinds, final boolean recurse) throws IOException {
     this.checker.check();
-    if (location == PLATFORM_CLASS_PATH) {
-      Iterable<JavaFileObject> list = this.delegate.list(location, packageName, kinds, recurse);
-      return list;
+    // delegate everything from platform class path or java.* packages to the default file manager
+    if (location == PLATFORM_CLASS_PATH || packageName.startsWith("java")) {
+      return this.delegate.list(location, packageName, kinds, recurse);
     }
     
     Path basePath = this.getPath(location);

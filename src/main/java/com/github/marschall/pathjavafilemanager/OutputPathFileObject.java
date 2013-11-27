@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 class OutputPathFileObject extends PathFileObject {
 
@@ -18,7 +19,9 @@ class OutputPathFileObject extends PathFileObject {
   
   @Override
   public OutputStream openOutputStream() throws IOException {
-    return Files.newOutputStream(this.path);
+    // the file and parent folder must exist
+    Files.createDirectories(this.path.getParent());
+    return Files.newOutputStream(this.path, StandardOpenOption.CREATE);
   }
 
   @Override
